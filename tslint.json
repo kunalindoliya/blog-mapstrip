@@ -1,0 +1,6 @@
+{
+  "rules": {
+    "no-unsafe-any": false,
+    "no-any": false
+  }
+}
