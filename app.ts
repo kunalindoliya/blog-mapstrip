@@ -13,19 +13,20 @@ app.listen(3000);*/
 import express from 'express'
 import * as bodyParser from 'body-parser'
 import {MasterRouter} from "./lib/routes/MasterRouter";
+import path from 'path';
 
 class App {
-    public app: express.Application
-    public mainRouter: MasterRouter = new MasterRouter()
+    public app: express.Application;
+    public mainRouter: MasterRouter = new MasterRouter();
 
     constructor() {
-        this.app = express()
-        this.app.use(bodyParser.json())
-        this.app.use(bodyParser.urlencoded({extended: true}))
-        this.app.use('/public', express.static('./public'))
-        this.app.set("views", "views")
-        this.app.set("view engine", "ejs")
-        this.mainRouter.routes(this.app)
+        this.app = express();
+        this.app.use('/public', express.static(path.join(__dirname,'public')));
+        this.app.use(bodyParser.json());
+        this.app.use(bodyParser.urlencoded({extended: true}));
+        this.app.set("views", "lib/views");
+        this.app.set("view engine", "ejs");
+        this.mainRouter.routes(this.app);
     }
 }
 
