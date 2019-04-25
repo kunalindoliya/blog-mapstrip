@@ -2,12 +2,14 @@
   "name": "blog-mapstrip",
   "version": "0.0.0",
   "private": true,
-  "main": "src/index.js",
+  "main": "app.js",
   "scripts": {
-    "start": "nodemon build/app.js",
-    "tsc": "tsc"
+    "start": "nodemon build/server.js",
+    "tsc": "tsc",
+    "dev": "nodemon --watch 'lib/**/*.ts' --ignore 'lib/**/*.spec.ts' --exec 'ts-node' server.ts"
   },
   "dependencies": {
+    "body-parser": "^1.18.3",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.9",
     "ejs": "~2.5.7",
