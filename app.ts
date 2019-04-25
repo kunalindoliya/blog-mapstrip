@@ -21,7 +21,7 @@ class App {
 
     constructor() {
         this.app = express();
-        this.app.use('/public', express.static(path.join(__dirname,'public')));
+        this.app.use(express.static(path.join(__dirname,'public')));
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({extended: true}));
         this.app.set("views", "lib/views");
