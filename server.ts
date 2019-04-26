@@ -1,5 +1,9 @@
 import app from './app'
+import sequelize from './lib/util/database';
 
 const port = 3000;
 
-app.listen(port, (error) => console.log(error));
+sequelize.sync({force:true}).then(result=>{
+    app.listen(port);
+}).catch(err=>{console.log(err)});
+
