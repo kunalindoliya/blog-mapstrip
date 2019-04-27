@@ -18,5 +18,8 @@ export class MasterRouter {
         app.route('/admin').post(this.adminController.postIndex);
         app.route('/admin/dashboard').get(this.adminController.getDashboard);
         app.route('/admin/add-blog').get(this.adminController.getAddBlog);
+        app.route('/admin/add-blog').post(this.adminController.postAddBlog);
+        app.route('/admin/add-file').get(this.adminController.getAddFile);
+        app.route('/admin/add-file').post(this.adminController.postAddFile);
     }
 }
