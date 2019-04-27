@@ -7,6 +7,7 @@ import {
     DataType,
     DeletedAt,
     ForeignKey,
+    HasMany,
     Model,
     PrimaryKey,
     Table,
@@ -14,6 +15,8 @@ import {
     UpdatedAt
 } from "sequelize-typescript";
 import {User} from "./user.model";
+import {File} from "./file.model";
+
 
 @Table
 export class Blog extends Model<Blog>{
@@ -31,11 +34,40 @@ export class Blog extends Model<Blog>{
     title! : string;
 
     @AllowNull(false)
-    @Column(DataType.TEXT)
-    description! : string;
+    @Column
+    category! : string;
+
+    @AllowNull(false)
+    @Column
+    stub! : string;
+
+    @AllowNull(false)
+    @Column
+    status! : string;
+
+    @AllowNull(false)
+    @Column
+    coverImage! : string;
 
     @Column
-    file! : string
+    thumbnailImage! : string;
+
+    @Column
+    externalResource! : string;
+
+    @Column
+    externalResourceType! : string;
+
+    @Column(DataType.TEXT)
+    tags! : string;
+
+    @AllowNull(false)
+    @Column(DataType.TEXT)
+    shortDescription! : string;
+
+    @AllowNull(false)
+    @Column(DataType.TEXT)
+    data! : string;
 
     @ForeignKey(()=>User)
     @Column
@@ -43,6 +75,9 @@ export class Blog extends Model<Blog>{
 
     @BelongsTo(()=>User)
     user! :User;
+
+    @HasMany(()=>File)
+    files!: File[];
 
     @CreatedAt
     createdAt;
