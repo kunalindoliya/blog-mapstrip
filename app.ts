@@ -1,24 +1,22 @@
-/*import express=require("express");
-
-const app: express.Application = express();
-// view engine setup
-app.set("views", "views");
-app.set("view engine", "ejs");
-
-//server
-app.listen(3000);*/
-
-// run server with yarn dev or npm run dev
-
 import express from 'express'
 import * as bodyParser from 'body-parser'
 import {MasterRouter} from "./lib/routes/MasterRouter";
 import path from 'path';
 import multer from 'multer';
+import moment from "moment";
+import sequelize from './lib/util/database';
+import {User} from "./lib//models/user.model";
+import session from "express-session";
+import store from 'connect-session-sequelize';
+
+const SequelizeStore=store(session.Store);
+const sessionStore= new SequelizeStore({
+   db:sequelize
+});
 
 const fileStorage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'files');
+        cb(null, 'build/files');
     },
     filename: (req, file, cb) => {
         cb(null, file.fieldname + '-' + file.originalname);
@@ -38,12 +36,30 @@ class App {
     constructor() {
         this.app = express();
         this.app.use(express.static(path.join(__dirname, 'public')));
-        this.app.use('/files',express.static(path.join(__dirname, 'files')));
+        this.app.use('/build/files',express.static(path.join(__dirname, 'files')));
         this.app.use(bodyParser.json());
         this.app.use(multer({storage:fileStorage,fileFilter:filter}).single('image'));
         this.app.use(bodyParser.urlencoded({extended: true}));
+        this.app.use(session({
+            secret: "my secret",
+            store: sessionStore,
+            resave: false,
+            saveUninitialized: false
+        }));
+        this.app.use((req:any,res:any,next:any)=>{
+            if(!req.session.user){
+                return next();
+            }
+            User.findByPk(req.session.user.id)
+                .then(user => {
+                    req.user = user;
+                    next();
+                })
+                .catch(err => console.log(err));
+        });
         this.app.set("views", "lib/views");
         this.app.set("view engine", "ejs");
+        this.app.locals.moment=moment;
         this.mainRouter.routes(this.app);
     }
 }
