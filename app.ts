@@ -1,11 +1,10 @@
 import express from 'express'
 import * as bodyParser from 'body-parser'
 import {MasterRouter} from "./lib/routes/MasterRouter";
-import path from 'path';
 import multer from 'multer';
 import moment from "moment";
 import sequelize from './lib/util/database';
-import {User} from "./lib//models/user.model";
+import {User} from "./lib/models/user.model";
 import session from "express-session";
 import store from 'connect-session-sequelize';
 import flash from 'connect-flash';
@@ -17,7 +16,7 @@ const sessionStore= new SequelizeStore({
 
 const fileStorage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'build/files');
+        cb(null, 'files');
     },
     filename: (req, file, cb) => {
         cb(null, file.fieldname + '-' + file.originalname);
@@ -36,8 +35,8 @@ class App {
 
     constructor() {
         this.app = express();
-        this.app.use(express.static(path.join(__dirname, 'public')));
-        this.app.use('/build/files',express.static(path.join(__dirname, 'files')));
+        this.app.use(express.static('public'));
+        this.app.use('/files',express.static('files'));
         this.app.use(bodyParser.json());
         this.app.use(multer({storage:fileStorage,fileFilter:filter}).single('image'));
         this.app.use(bodyParser.urlencoded({extended: true}));

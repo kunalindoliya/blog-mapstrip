@@ -49,45 +49,49 @@ export default class AdminController {
 
     public postAddBlog(req: any, res: Response) {
         const formCategory = req.body.category;
-        Category.findOne({where: {title: formCategory}})
-            .then(category => {
-                if (!category) {
-                    category=Category.create({title: formCategory})
-                }
-                return Blog.create({
-                    title: req.body.title,
-                    category_name: req.body.category,
-                    stub: req.body.stub.split(' ').join('-'),
-                    status: req.body.status,
-                    coverImage: req.body.coverImage,
-                    thumbnailImage: req.body.thumbnailImage,
-                    externalResource: req.body.extRes,
-                    externalResourceType: req.body.extResType,
-                    tags_name: req.body.tags,
-                    shortDescription: req.body.shortDescription,
-                    data: req.body.data,
-                    userId: req.user.id,
-                    categoryId: category.id
-                }).then(result => {
-                    let tags = req.body.tags.split(' ');
-                    console.log(tags);
-                    for (let i = 0; i < tags.length; i++) {
-                        console.log("in loop");
-                        Tag.findOne({where: {title: tags[i]}})
-                            .then(tag => {
-                            if (!tag) {
-                                tag=Tag.create({title: tags[i]});
-                            }
-                            BlogTag.create({blogId: result.id, tagId: tag.id});
-                        }).catch(err => console.log(err));
+        const tags=req.body.tags.split(' ');
+        Blog.create({
+            title: req.body.title,
+            category_name: req.body.category,
+            stub: req.body.stub.split(' ').join('-'),
+            status: req.body.status,
+            coverImage: req.body.coverImage,
+            thumbnailImage: req.body.thumbnailImage,
+            externalResource: req.body.extRes,
+            externalResourceType: req.body.extResType,
+            tags_name: req.body.tags,
+            shortDescription: req.body.shortDescription,
+            data: req.body.data,
+            userId: req.user.id,
+        }).then(blog => {
+            Category.findOne({where: {title: formCategory}})
+                .then(category => {
+                    if (!category) {
+                       Category.create({title: formCategory}).then(category=>{
+                           blog.categoryId=category.id;
+                           return blog.save();
+                       })
                     }
-                }).then(result => {
-                    req.flash("info", "Blog Added Successfully.");
-                    return req.session.save(err => {
-                        res.redirect('/admin/add-blog');
-                    });
-                })
-            }).catch(err => console.log(err));
+                    blog.categoryId = category.id;
+                    return blog.save();
+                }).then(blog=>{
+                    for(let t of tags){
+                       Tag.findOne({where:{title:t}}).then(tag=>{
+                           if(!tag){
+                               return Tag.create({title:t}).then(tag=>{
+                                   BlogTag.create({blogId:blog.id,tagId:tag.id});
+                               });
+                           }
+                           return BlogTag.create({blogId:blog.id,tagId:tag.id});
+                       })
+                    }
+            })
+        }).then(result=>{
+            req.flash("info", "Blog Added Successfully.");
+            return req.session.save(err => {
+                res.redirect('/admin/add-blog');
+            });
+        }).catch(err => console.log(err));
     }
 
     public getAddFile(req: any, res: Response) {
