@@ -2,32 +2,29 @@ import {
     AllowNull,
     AutoIncrement,
     BelongsTo,
+    BelongsToMany,
     Column,
     CreatedAt,
     DataType,
     DeletedAt,
     ForeignKey,
-    HasMany,
     Model,
     PrimaryKey,
     Table,
-    Unique,
     UpdatedAt
 } from "sequelize-typescript";
 import {User} from "./user.model";
-import {File} from "./file.model";
+import {Category} from "./category.model";
+import {Tag} from "./tag.model";
+import {BlogTag} from "./blog-tag.model";
 
 
 @Table
 export class Blog extends Model<Blog>{
     @AutoIncrement
-    @Unique
-    @Column
-    index! :number;
-
     @PrimaryKey
     @Column
-    id! : string;
+    id! :number;
 
     @AllowNull(false)
     @Column
@@ -35,7 +32,7 @@ export class Blog extends Model<Blog>{
 
     @AllowNull(false)
     @Column
-    category! : string;
+    category_name! : string;
 
     @AllowNull(false)
     @Column
@@ -59,7 +56,7 @@ export class Blog extends Model<Blog>{
     externalResourceType! : string;
 
     @Column(DataType.TEXT)
-    tags! : string;
+    tags_name! : string;
 
     @AllowNull(false)
     @Column(DataType.TEXT)
@@ -71,13 +68,20 @@ export class Blog extends Model<Blog>{
 
     @ForeignKey(()=>User)
     @Column
-    userId! : string;
+    userId! : number;
 
     @BelongsTo(()=>User)
     user! :User;
 
-    @HasMany(()=>File)
-    files!: File[];
+    @ForeignKey(()=>Category)
+    @Column
+    categoryId! : number;
+
+    @BelongsTo(()=>Category)
+    category! :Category;
+
+    @BelongsToMany(()=>Tag,()=>BlogTag)
+    tags! :Tag[];
 
     @CreatedAt
     createdAt;

@@ -8,6 +8,7 @@ import sequelize from './lib/util/database';
 import {User} from "./lib//models/user.model";
 import session from "express-session";
 import store from 'connect-session-sequelize';
+import flash from 'connect-flash';
 
 const SequelizeStore=store(session.Store);
 const sessionStore= new SequelizeStore({
@@ -46,6 +47,7 @@ class App {
             resave: false,
             saveUninitialized: false
         }));
+        this.app.use(flash());
         this.app.use((req:any,res:any,next:any)=>{
             if(!req.session.user){
                 return next();

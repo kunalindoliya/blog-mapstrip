@@ -1,10 +1,10 @@
 import {
     AllowNull,
     AutoIncrement,
+    BelongsToMany,
     Column,
     CreatedAt,
     DeletedAt,
-    HasMany,
     Model,
     PrimaryKey,
     Table,
@@ -12,37 +12,22 @@ import {
     UpdatedAt
 } from "sequelize-typescript";
 import {Blog} from "./blog.model";
+import {BlogTag} from "./blog-tag.model";
 
 @Table
-export class User extends Model<User> {
-
+export class Tag extends Model<Tag>{
     @AutoIncrement
     @PrimaryKey
     @Column
-    id!: number;
-
-    @AllowNull(false)
-    @Column
-    firstName!: string;
-
-    @AllowNull(false)
-    @Column
-    lastName!: string;
+    id! :number;
 
     @AllowNull(false)
     @Unique
     @Column
-    email!: string;
+    title! : string;
 
-    @AllowNull(false)
-    @Column
-    password!: string;
-
-    @HasMany(()=>Blog)
-    blogs! : Blog[];
-
-    @Column
-    avatar! : string;
+    @BelongsToMany(()=>Blog,()=>BlogTag)
+    blogs! :Blog[];
 
     @CreatedAt
     createdAt;

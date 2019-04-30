@@ -13,36 +13,21 @@ import {
 } from "sequelize-typescript";
 import {Blog} from "./blog.model";
 
-@Table
-export class User extends Model<User> {
 
+@Table
+export class Category extends Model<Category>{
     @AutoIncrement
     @PrimaryKey
     @Column
-    id!: number;
-
-    @AllowNull(false)
-    @Column
-    firstName!: string;
-
-    @AllowNull(false)
-    @Column
-    lastName!: string;
+    id! :number;
 
     @AllowNull(false)
     @Unique
     @Column
-    email!: string;
-
-    @AllowNull(false)
-    @Column
-    password!: string;
+    title! : string;
 
     @HasMany(()=>Blog)
-    blogs! : Blog[];
-
-    @Column
-    avatar! : string;
+    blogs! :Blog[];
 
     @CreatedAt
     createdAt;

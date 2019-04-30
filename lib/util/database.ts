@@ -2,6 +2,9 @@ import {Sequelize} from 'sequelize-typescript';
 import {User} from "../models/user.model";
 import {Blog} from "../models/blog.model";
 import {File} from "../models/file.model";
+import {Category} from '../models/category.model';
+import {Tag} from '../models/tag.model';
+import {BlogTag} from '../models/blog-tag.model';
 
 
 const sequelize =  new Sequelize({
@@ -11,5 +14,5 @@ const sequelize =  new Sequelize({
     password: '',
     storage: ':memory:'
 });
-sequelize.addModels([User,Blog,File]);
+sequelize.addModels([User,Blog,File,Category,Tag,BlogTag]);
 export  default sequelize;
