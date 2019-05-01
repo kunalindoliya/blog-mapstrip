@@ -1,32 +1,53 @@
-import {Request, Response} from "express";
+import {Response} from "express";
 import {User} from "../models/user.model";
 import {File} from "../models/file.model";
 import {Blog} from "../models/blog.model";
 import {Category} from "../models/category.model";
 import {Tag} from "../models/tag.model";
 import {BlogTag} from "../models/blog-tag.model";
+import * as bcrypt from "bcrypt";
 import Puid = require("puid");
+
 
 const puid = new Puid(true);
 
 export default class AdminController {
-    public getIndex(req: Request, res: Response) {
-        res.render('admin/index', {title: 'MapStrip Admin'});
+    public getIndex(req: any, res: Response) {
+        let message = req.flash("info");
+        if (message.length > 0) {
+            message = message[0];
+        } else {
+            message = null;
+        }
+        res.render('admin/index', {title: 'MapStrip Admin',message:message});
     }
 
     public postIndex(req: any, res: Response) {
         const email = req.body.email;
         const password = req.body.password;
-        User.findOne({where: {email: email, password: password}}).then(user => {
+
+        User.findOne({where: {email: email}}).then(user => {
             if (!user) {
-                return res.redirect('/admin');
+                req.flash("info","Invalid email");
+                return req.session.save(err=>{
+                   res.redirect('/admin');
+                });
             }
-            req.session.user = user;
-            return req.session.save(err => {
-                if (err) {
+            bcrypt.compare(password,user.password)
+                .then(doMatch=>{
+                    if(doMatch){
+                        req.session.user=user;
+                        return req.session.save(err=>{
+                            res.redirect('/admin/dashboard');
+                        })
+                    }
+                    req.flash("info", "Invalid password.");
+                    return req.session.save(err => {
+                        res.redirect("/admin");
+                    });
+                }).catch(err=>{
                     console.log(err);
-                }
-                res.redirect("/admin/dashboard");
+                    res.redirect('/admin');
             });
         }).catch(err => console.log(err));
     }
@@ -139,19 +160,31 @@ export default class AdminController {
         } else {
             avatar = req.file.path;
         }
-        User.create({
-            id: puid.generate(),
-            firstName: firstName,
-            lastName: lastName,
-            email: email,
-            password: password,
-            avatar: avatar
-        }).then(result => {
-            req.flash('info', 'User Added Successfully.');
-            return req.session.save(err => {
-                res.redirect('/admin/add-user');
-            });
-        }).catch(err => console.log(err));
+        User.findOne({where:{email:email}}).then(user=>{
+            if(user){
+                req.flash("info","Email already exists!");
+                return req.session.save(err=>{
+                    res.redirect("/admin/add-user");
+                })
+            }
+            return bcrypt.hash(password,10)
+                .then(hashValue=>{
+                    const user=new User({
+                        firstName: firstName,
+                        lastName: lastName,
+                        email: email,
+                        password: hashValue,
+                        avatar: avatar
+                    });
+                    return user.save();
+                })
+                .then(result=>{
+                    req.flash('info', 'User Added Successfully.');
+                    return req.session.save(err => {
+                        res.redirect('/admin/add-user');
+                    });
+                })
+        }).catch(err=>console.log(err));
     }
 
     public postLogout(req: any, res: Response) {

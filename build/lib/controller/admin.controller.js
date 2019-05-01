@@ -1,4 +1,11 @@
 "use strict";
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const user_model_1 = require("../models/user.model");
 const file_model_1 = require("../models/file.model");
@@ -7,24 +14,44 @@ const category_model_1 = require("../models/category.model");
 const tag_model_1 = require("../models/tag.model");
 const blog_tag_model_1 = require("../models/blog-tag.model");
 const Puid = require("puid");
+const bcrypt = __importStar(require("bcrypt"));
 const puid = new Puid(true);
 class AdminController {
     getIndex(req, res) {
-        res.render('admin/index', { title: 'MapStrip Admin' });
+        let message = req.flash("info");
+        if (message.length > 0) {
+            message = message[0];
+        }
+        else {
+            message = null;
+        }
+        res.render('admin/index', { title: 'MapStrip Admin', message: message });
     }
     postIndex(req, res) {
         const email = req.body.email;
         const password = req.body.password;
-        user_model_1.User.findOne({ where: { email: email, password: password } }).then(user => {
+        user_model_1.User.findOne({ where: { email: email } }).then(user => {
             if (!user) {
-                return res.redirect('/admin');
+                req.flash("info", "Invalid email");
+                return req.session.save(err => {
+                    res.redirect('/admin');
+                });
             }
-            req.session.user = user;
-            return req.session.save(err => {
-                if (err) {
-                    console.log(err);
+            bcrypt.compare(password, user.password)
+                .then(doMatch => {
+                if (doMatch) {
+                    req.session.user = user;
+                    return req.session.save(err => {
+                        res.redirect('/admin/dashboard');
+                    });
                 }
-                res.redirect("/admin/dashboard");
+                req.flash("info", "Invalid password.");
+                return req.session.save(err => {
+                    res.redirect("/admin");
+                });
+            }).catch(err => {
+                console.log(err);
+                res.redirect('/admin');
             });
         }).catch(err => console.log(err));
     }
@@ -133,17 +160,29 @@ class AdminController {
         else {
             avatar = req.file.path;
         }
-        user_model_1.User.create({
-            id: puid.generate(),
-            firstName: firstName,
-            lastName: lastName,
-            email: email,
-            password: password,
-            avatar: avatar
-        }).then(result => {
-            req.flash('info', 'User Added Successfully.');
-            return req.session.save(err => {
-                res.redirect('/admin/add-user');
+        user_model_1.User.findOne({ where: { email: email } }).then(user => {
+            if (user) {
+                req.flash("info", "Email already exists!");
+                return req.session.save(err => {
+                    res.redirect("/admin/add-user");
+                });
+            }
+            return bcrypt.hash(password, 10)
+                .then(hashValue => {
+                const user = new user_model_1.User({
+                    firstName: firstName,
+                    lastName: lastName,
+                    email: email,
+                    password: hashValue,
+                    avatar: avatar
+                });
+                return user.save();
+            })
+                .then(result => {
+                req.flash('info', 'User Added Successfully.');
+                return req.session.save(err => {
+                    res.redirect('/admin/add-user');
+                });
             });
         }).catch(err => console.log(err));
     }
